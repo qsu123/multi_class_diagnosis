@@ -1,0 +1,38 @@
+
+
+library(vegan)
+library(ggpubr)
+library(reshape2)
+library(ggsci)
+library ("phyloseq")
+library("ggplot2")
+library(permute)
+library(lattice)
+library(vegan) 
+library(tidyverse)  
+library(ggpubr)
+library(dplyr)
+options(stringsAsFactors=F)
+
+setwd("data_path")
+rm(list=ls())
+
+df=read.table("abundance_table.txt", sep="\t",header=TRUE)
+
+sd <- read.table("group.txt", sep="\t",header=TRUE)
+
+data<-inner_join(df, sd, by="sample")
+
+site = data.frame(sample = data$sample,
+                  group = data$group)
+
+row.names(data)<-data[,1]
+data=data[,-1]
+data<-subset(data,select=-c(group))
+
+
+#dataT<-as.data.frame(t(data))
+dist <- vegdist(data, method="bray")
+
+adonis_result_dis = adonis(dist~group, site, permutations = 999)
+adonis_result_dis
