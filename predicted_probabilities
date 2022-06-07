@@ -1,0 +1,12 @@
+
+library(ggridges)
+library(ggplot2)
+setwd("data_path")
+data=read.table("predicted_probabilities.txt", sep="\t", header=TRUE)
+head(data)
+theme_set(theme_bw())
+p<-ggplot(data,aes(x=value,y=group,fill=group))+
+  geom_density_ridges()+
+  theme(legend.position = "none")
+p
+ggsave("predicted_probabilities.pdf", width = 10, height = 10, units = "cm")
