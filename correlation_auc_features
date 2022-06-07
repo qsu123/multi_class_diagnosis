@@ -1,0 +1,23 @@
+library(ggplot2)
+library(ggcorrplot)
+setwd("data_path")
+data<-read.table("auc_data.txt",header=TRUE,sep="\t")
+head(data)
+
+r<-cor(data$auc,data$group,method="pearson")
+
+p1<-ggplot(data=data, aes(x=group, y=auc))+
+  geom_point(aes(x=group, y=auc, color = type), size=1.0, alpha=0.6)+
+  geom_smooth(method="lm",color="#1a9641")+
+  geom_text(aes(x=4, y=1,label=paste("R","=",signif(r,3),seq="")),color="#fdae61")+geom_line(aes(group=type,colour=type))+
+  theme_bw() +scale_x_continuous(limits=c(1, 4)) 
+
+p1
+
+ggsave("correlation.pdf", width = 12, height = 8, units = "cm")
+
+row.names(data)<-data[,]
+data<-subset(data,select=-c(type))
+corr <- round(cor(data), 1)
+p.mat <- cor_pmat(data)
+write.table(p.mat,"pmat.txt", sep="\t")
