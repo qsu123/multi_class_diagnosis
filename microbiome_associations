@@ -1,0 +1,24 @@
+library ("phyloseq")
+library("ggplot2")
+library(permute)
+library(lattice)
+library(vegan) 
+library(tidyverse)  
+library(ggpubr)
+library("Maaslin2")
+setwd("data_path")
+getwd()
+featuredata=read.table("abundancetable.txt", sep="\t", header=TRUE)
+row.names(featuredata)<-featuredata[,1]
+featuredata<-featuredata[, -c(1)]
+mode(featuredata)
+featuredata<-as.data.frame(featuredata)
+
+metadata<-read.table("metadata.txt", sep="\t", header=TRUE)
+row.names(metadata)<-metadata[,1]
+metadata<-metadata[, -c(1)]
+fit_data = Maaslin2(
+  input_data = featuredata, 
+  input_metadata = metadata, 
+  output = "maaslin2_output", 
+  fixed_effects = c("factors"))
