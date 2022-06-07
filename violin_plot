@@ -1,0 +1,47 @@
+library ("phyloseq")
+library("ggplot2")
+library(permute)
+library(lattice)
+library(vegan) 
+library(tidyverse)  
+library(ggpubr)
+setwd("diversity_data_path")
+diversitydata=read.table("diversity_all.txt", sep="\t", header=TRUE)
+colnames(diversitydata)[1]<-"sample"
+group=read.table("group.txt", sep="\t", header=TRUE)
+diversitydata<-inner_join(diversitydata, group, by="sample")
+diversitydata<-na.omit(diversitydata)
+diversitydata$group<-factor(diversitydata$group,order=TRUE, levels = c("Health","CVD","CA","CRC","CD","IBS_D","Obesity","PACS","UC"))
+
+shannon<-ggviolin(diversitydata, x="group", y="shannon_diversity", fill = "group", 
+                  palette = c("#e41a1c",
+                               "#377eb8",
+                               "#4daf4a",
+                               "#984ea3",
+                               "#ff7f00",
+                               "#ffff33",
+                               "#a65628",
+                               "#f781bf",
+                               "#999999"),
+                  add = "boxplot", add.params = list(fill="white"))+
+  scale_y_continuous(limits=c(0,10))+labs(x="", y = "shannon_diversity")+theme(legend.position = 'none')+
+  theme(legend.title=element_blank(),legend.text=element_text(size=15),axis.text = element_text(size=15), axis.title = element_text(size=16))
+
+shannon
+ggsave("Shannon.pdf", width = 12.5, height = 8, units = "cm")
+
+richness<-ggviolin(diversitydata, x="group", y="richness", fill = "group", 
+                   palette = c("#e41a1c",
+                               "#377eb8",
+                               "#4daf4a",
+                               "#984ea3",
+                               "#ff7f00",
+                               "#ffff33",
+                               "#a65628",
+                               "#f781bf",
+                               "#999999"),
+                   add = "boxplot", add.params = list(fill="white"))+
+  scale_y_continuous()+labs(x="", y = "Richness")+theme(legend.position = 'none')+
+  theme(legend.title=element_blank(),legend.text=element_text(size=15),axis.text = element_text(size=15),axis.title = element_text(size=16))
+richness
+ggsave("richness.pdf", width = 13, height = 8, units = "cm")
