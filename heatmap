@@ -1,0 +1,7 @@
+library(pheatmap)
+setwd("data_path")
+data<-read.table("heatmap.txt",sep = "\t",header = TRUE)
+row.names(data)<-data[,1]
+data=data[,-1]
+
+pheatmap(data, cellwidth = 15, cellheight = 15,color = colorRampPalette(c("navy", "white", "firebrick3"))(50),filename = "heatmap.pdf")
