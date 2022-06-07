@@ -1,0 +1,74 @@
+rm(list=ls())
+library(vegan)
+library(ggpubr)
+library(reshape2)
+library(ggsci)
+library ("phyloseq")
+library("ggplot2")
+library(permute)
+library(lattice)
+library(vegan) 
+library(tidyverse)  
+library(ggpubr)
+library(dplyr)
+
+options(stringsAsFactors=F)
+
+setwd("data_path")
+df=read.table("abundance_table.txt", sep="\t",header=TRUE)
+
+row.names(df)<-df[,1]
+df<-df[, -c(1)]
+dataT<-as.data.frame(df)
+dataT<-na.omit(dataT)
+dist <- vegdist(dataT, method="bray")
+dist <- as.matrix(dist)
+adist<-as.dist(dist)
+
+sd <- read.table("group.txt", sep="\t",header=TRUE)
+rownames(sd) <- as.character(sd[,1])
+
+pc_num <-c(1,2)
+pc_x <- pc_num[1]
+pc_y <- pc_num[2]
+pcoa <- cmdscale(dist, k=3, eig=TRUE)
+pc12 <- pcoa$points[,pc_num]
+pc <- round(pcoa$eig/sum(pcoa$eig)*100,digits = 2)
+pc12 <- as.data.frame(pc12)
+colnames(pc12) <- c("pc_x","pc_y")
+pc12['sample'] <- rownames(pc12)
+colnames(sd)[1:2] <- c("sample","group")
+
+sd$group<-factor(sd$group,levels=sd$group[!duplicated(sd$group)])
+pc12 <- merge(pc12,sd,by="sample")
+pc12$group<-factor(pc12$group,levels=levels(sd$group))
+
+pc_aver<-as.data.frame(pc12 %>% dplyr::select(-sample) %>% group_by(group)%>%summarise_all(funs(mean)))
+
+mycols<-c("#e41a1c",
+          "#377eb8",
+          "#4daf4a",
+          "#984ea3",
+          "#ff7f00",
+          "#ffff33",
+          "#a65628",
+          "#f781bf",
+          "#999999")
+
+p1<-ggscatter(pc12, x = "pc_x", y = "pc_y",color = 'group',
+              fill = "group", shape = "group", palette = mycols, size=3,
+              ellipse = F,# conf.int.level = 0.95,
+              alpha=1,
+              mean.point = F,
+              star.plot = TRUE,star.plot.lty = 0,star.plot.lwd = 0.01)+
+  ylab(paste0("PCoA",pc_y,"(",round(pc[pc_y],2),"%",")"))+
+  xlab(paste0("PCoA",pc_x,"(",round(pc[pc_x],2),"%",")"))+
+  scale_shape_manual(values = rep(21,length(levels(pc12$group))))+
+  geom_point(data=pc_aver,aes(x=pc_x,y=pc_y,fill=group),size=9,shape=21)+
+  theme(#axis.title = element_blank(),
+    legend.position = "right",legend.title = element_blank(),
+    panel.border = element_rect(color = "black",size = 1.0,fill = NA),
+    text = element_text(size=24)) 
+p1
+
+ggsave('pcoa.pdf',width=10,height=8)
