@@ -1,0 +1,12 @@
+#data retrieve
+bcl2fastq -R /home/qisu/long_covid_test/20220606/220527_A01066_0098_BHCJ2GDMXY  -o /home/qisu/long_covid_test/20220606/raw  --sample-sheet  /home/qisu/long_covid_test/20220606/lc_test_20220606.csv
+
+# trim & dehost  
+parallel -j 4 --link --xapply --plus  --regexp 'kneaddata  -i /home/qisu/long_covid_test/20220606/raw/{}_*R1_*.fastq.gz  -i /home/qisu/long_covid_test/20220606/raw/{}_*R2_*.fastq.gz   --output  /home/qisu/long_covid_test/20220606/trim/{/.}  --reference-db /srv/db/kneaddata --trimmomatic /srv/sw/trimmomatic/0.39 -t 8 --bypass-trf --trimmomatic-options "SLIDINGWINDOW:4:20 MINLEN:50" --bowtie2-options "--very-sensitive --dovetail" --remove-intermediate-output ' :::: /home/qisu/long_covid_test/20220606/lists.txt
+
+#metaphlan3  
+parallel -j 8 --link --xapply --plus  --regexp   ' metaphlan  --input_type fastq  --bowtie2db   /home/qinliu/anaconda3/envs/mpa/lib/python3.7/site-packages/metaphlan/metaphlan_databases /home/qisu/long_covid_test/20220606/trim/{}/{}*_paired_1.fastq  -o  /home/qisu/long_covid_test/20220606/metaphlan3/{}.metaphlan.txt'   :::: /home/qisu/long_covid_test/20220606/lists.txt
+
+#merge documents
+merge_metaphlan_tables.py *.txt > merged_abundance_table.txt
+merge_metaphlan_tables.py *.txt > merged_abundance_table.csv
